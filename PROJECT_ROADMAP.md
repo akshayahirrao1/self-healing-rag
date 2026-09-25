@@ -49,4 +49,4 @@ Transform the project into a visually stunning, interactive web application that
 - [x] Step 2: Beautiful React Chat UI
 - [x] Step 3: Dynamic Document Upload
 - [x] Step 4: Advanced RAG (Reranking)
-- [ ] Step 5: Dockerization
+- [x] Step 5: Dockerization

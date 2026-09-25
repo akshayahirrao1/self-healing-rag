@@ -12,3 +12,4 @@ class Config:
     TOP_K = int(os.getenv("TOP_K", "4"))
     RETRIEVAL_FETCH_K = int(os.getenv("RETRIEVAL_FETCH_K", "15"))
     RERANKER_MODEL = os.getenv("RERANKER_MODEL", "cross-encoder/ms-marco-MiniLM-L-6-v2")
+    OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")

@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend.Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      # Use host.docker.internal so the Docker container can talk to Ollama running on your Windows host
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434
+    volumes:
+      - ./data:/app/data
+      - ./chroma_db:/app/chroma_db
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: frontend.Dockerfile
+    ports:
+      # Map the standard Vite port 5173 on the host to Nginx's port 80 in the container
+      - "5173:80"
+    depends_on:
+      - backend
+    restart: unless-stopped

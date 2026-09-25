@@ -38,7 +38,7 @@ Is this answer supported by the retrieved context? Respond with JSON only.""")
 ])
 
 def get_llm():
-    return ChatOllama(model=Config.MODEL_NAME, temperature=0.0)
+    return ChatOllama(model=Config.MODEL_NAME, base_url=Config.OLLAMA_BASE_URL, temperature=0.0)
 
 def run_critic(question: str, context: str, answer: str) -> CriticDecision:
     """
