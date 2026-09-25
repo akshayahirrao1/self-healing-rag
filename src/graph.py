@@ -28,11 +28,35 @@ def retrieve(state: RAGState) -> dict:
     print(f"Query: '{query}'")
     
     vector_store = get_vector_store()
-    retriever = vector_store.as_retriever(search_kwargs={"k": Config.TOP_K})
-    docs = retriever.invoke(query)
+    # Fetch a larger pool of documents initially
+    fetch_k = getattr(Config, "RETRIEVAL_FETCH_K", 15)
+    retriever = vector_store.as_retriever(search_kwargs={"k": fetch_k})
+    initial_docs = retriever.invoke(query)
     
-    print(f"Retrieved: {len(docs)} chunks")
+    print(f"Retrieved initially: {len(initial_docs)} chunks")
     
+    # Advanced RAG: Reranking
+    if len(initial_docs) > 0:
+        from sentence_transformers import CrossEncoder
+        print("Reranking documents...")
+        reranker_model = getattr(Config, "RERANKER_MODEL", "cross-encoder/ms-marco-MiniLM-L-6-v2")
+        reranker = CrossEncoder(reranker_model)
+        
+        # Create (query, doc_text) pairs
+        pairs = [[query, doc.page_content] for doc in initial_docs]
+        scores = reranker.predict(pairs)
+        
+        # Sort docs by score (highest first)
+        scored_docs = list(zip(initial_docs, scores))
+        scored_docs.sort(key=lambda x: x[1], reverse=True)
+        
+        # Keep only the top k
+        top_k = Config.TOP_K
+        docs = [doc for doc, score in scored_docs[:top_k]]
+        print(f"Reranked and kept top {len(docs)} chunks")
+    else:
+        docs = initial_docs
+        
     return {"documents": docs}
 
 # ─── Node 2: Generate ─────────────────────────────────────────────
