@@ -2,7 +2,8 @@ import os
 import sys
 import json
 import asyncio
-from fastapi import FastAPI
+import shutil
+from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
@@ -11,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.graph import build_graph
+from src.ingestion import split_documents, store_in_chroma
 
 app = FastAPI(title="Self-Healing RAG API")
 
@@ -79,6 +81,35 @@ async def chat_endpoint(request: ChatRequest):
         stream_rag_events(request.question), 
         media_type="text/event-stream"
     )
+
+@app.post("/api/upload")
+async def upload_document(file: UploadFile = File(...)):
+    """
+    Accepts a PDF or TXT file, saves it, chunks it, and ingests it into ChromaDB.
+    """
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    data_dir = os.path.join(base_dir, "data")
+    os.makedirs(data_dir, exist_ok=True)
+    
+    file_path = os.path.join(data_dir, file.filename)
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+        
+    try:
+        if file.filename.endswith('.pdf'):
+            from langchain_community.document_loaders import PyPDFLoader
+            loader = PyPDFLoader(file_path)
+        else:
+            from langchain_community.document_loaders import TextLoader
+            loader = TextLoader(file_path)
+            
+        docs = loader.load()
+        chunks = split_documents(docs, chunk_size=200, chunk_overlap=50)
+        store_in_chroma(chunks)
+        
+        return {"status": "success", "message": f"Successfully ingested {file.filename}!"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 if __name__ == "__main__":
     import uvicorn

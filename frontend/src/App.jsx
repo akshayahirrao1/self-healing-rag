@@ -1,13 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
-import { Send, Bot, User, Loader2, Search, BrainCircuit, RefreshCw, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Send, Bot, User, Loader2, Search, BrainCircuit, RefreshCw, CheckCircle, AlertTriangle, Paperclip } from 'lucide-react';
 import './App.css';
 
 function App() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [uploadMsg, setUploadMsg] = useState("");
   const messagesEndRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -16,6 +18,35 @@ function App() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+    
+    setUploadMsg("Uploading & Ingesting...");
+    
+    try {
+      const response = await fetch("http://localhost:8000/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await response.json();
+      if (data.status === "success") {
+        setUploadMsg(data.message);
+      } else {
+        setUploadMsg("Error: " + data.message);
+      }
+    } catch (err) {
+      console.error(err);
+      setUploadMsg("Upload failed.");
+    }
+    
+    setTimeout(() => setUploadMsg(""), 5000);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -157,7 +188,23 @@ function App() {
         <div ref={messagesEndRef} />
       </div>
 
+      {uploadMsg && <div className="upload-toast">{uploadMsg}</div>}
       <form className="input-container" onSubmit={handleSubmit}>
+        <input 
+          type="file" 
+          ref={fileInputRef} 
+          onChange={handleFileUpload} 
+          accept=".txt,.pdf" 
+          style={{ display: 'none' }} 
+        />
+        <button 
+          type="button" 
+          className="icon-btn" 
+          onClick={() => fileInputRef.current?.click()}
+          title="Upload Document"
+        >
+          <Paperclip size={18} />
+        </button>
         <input 
           type="text" 
           placeholder="Ask a question..." 
