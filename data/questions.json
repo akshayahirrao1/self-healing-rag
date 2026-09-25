@@ -1,0 +1,18 @@
+[
+    {
+        "question": "How many vacation days do employees get?",
+        "expected_behavior": "answer"
+    },
+    {
+        "question": "What is the policy for remote work?",
+        "expected_behavior": "answer"
+    },
+    {
+        "question": "Can I bring my pet to the office?",
+        "expected_behavior": "fallback"
+    },
+    {
+        "question": "What is the company's policy on stock options?",
+        "expected_behavior": "fallback"
+    }
+]
