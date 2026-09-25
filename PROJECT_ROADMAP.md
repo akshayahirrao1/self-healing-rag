@@ -46,7 +46,7 @@ Transform the project into a visually stunning, interactive web application that
 
 ### Status Tracking
 - [x] Step 1: FastAPI Backend
-- [ ] Step 2: Beautiful React Chat UI
+- [x] Step 2: Beautiful React Chat UI
 - [ ] Step 3: Dynamic Document Upload
 - [ ] Step 4: Advanced RAG (Reranking)
 - [ ] Step 5: Dockerization
