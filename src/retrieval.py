@@ -25,7 +25,7 @@ Answer:""")
 
 def get_llm():
     """Initialize the local LLM."""
-    return ChatOllama(model=Config.MODEL_NAME, temperature=0.0)
+    return ChatOllama(model=Config.MODEL_NAME, base_url=Config.OLLAMA_BASE_URL, temperature=0.0)
 
 def format_docs(docs):
     """Combine retrieved document chunks into a single context string."""
